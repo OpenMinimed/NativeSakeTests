@@ -12,12 +12,30 @@
 
 void *library_handle = NULL;
 
-char TEST_KEY_DB[] = {0xf7, 0x59, 0x95, 0xe7, 0x04, 0x01, 0x01, 0x1b, 0xc1, 0xbf, 0x7c, 0xbf, 0x36, 0xfa, 0x1e, 0x23, 0x67, 0xd7, 0x95, 0xff, 0x09, 0x21, 0x19, 0x03, 0xda, 0x6a, 0xfb, 0xe9, 0x86, 0xb6, 0x50, 0xf1, 0x41, 0x79, 0xc0, 0xe6, 0x85, 0x2e, 0x0c, 0xe3, 0x93, 0x78, 0x10, 0x78, 0xff, 0xc6, 0xf5, 0x19, 0x19, 0xe2, 0xea, 0xef, 0xbd, 0xe6, 0x9b, 0x8e, 0xca, 0x21, 0xe4, 0x1a, 0xb5, 0x9b, 0x88, 0x1a, 0x0b, 0xea, 0x02, 0x86, 0xea, 0x91, 0xdc, 0x75, 0x82, 0xa8, 0x6a, 0x71, 0x4e, 0x17, 0x37, 0xf5, 0x58, 0xf0, 0xd6, 0x6d, 0xc1, 0x89, 0x5c};
+char SERVER_KEY_DB[] = {
+0xb0, 0x79, 0xcd, 0xc5, 0x04, 0x01, 0x01, 0x44, 0x45, 0x52, 0x49, 0x56, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x5f, 0x5f, 0x4b, 0x45, 0x59, 0x48, 0x4e, 0x44, 0x53, 0x48, 0x4b, 0x45, 0x5f, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x4b, 0x45, 0x59, 0x50, 0x48, 0x4f, 0x4e, 0x45, 0x5f, 0x50, 0x45, 0x52, 0x4d, 0x49, 0x54, 0x5f, 0x45, 0x4e, 0x43, 0x50, 0x48, 0x4f, 0x4e, 0x45, 0x5f, 0x50, 0x45, 0x52, 0x4d, 0x49, 0x54, 0x5f, 0x4d, 0x41, 0x43, 0xad, 0x14, 0xad, 0x27, 0x80, 0x43, 0x7d, 0xb8, 0x92, 0xd5, 0x65, 0x05, 0x67, 0xd4, 0x91, 0xb9
+};
+
+char CLIENT_KEY_DB[] = { 
+0xdb, 0x8c, 0x1f, 0x28, 0x01, 0x01, 0x04, 0x44, 0x45, 0x52, 0x49, 0x56, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x5f, 0x5f, 0x4b, 0x45, 0x59, 0x48, 0x4e, 0x44, 0x53, 0x48, 0x4b, 0x45, 0x5f, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x4b, 0x45, 0x59, 0x50, 0x55, 0x4d, 0x50, 0x5f, 0x50, 0x45, 0x52, 0x4d, 0x49, 0x54, 0x5f, 0x45, 0x4e, 0x43, 0x52, 0x50, 0x55, 0x4d, 0x50, 0x5f, 0x50, 0x45, 0x52, 0x4d, 0x49, 0x54, 0x5f, 0x43, 0x4d, 0x41, 0x43, 0xf2, 0xf8, 0xdb, 0xbb, 0x51, 0x56, 0x3d, 0x4f, 0xa9, 0x8f, 0xda, 0xff, 0x00, 0x42, 0xa4, 0x32
+};
+
+void check_success(int a, int b) {
+	if (a == 0 && b == 0) {
+		printf("\n\nHANDSHAKE SUCCESS LETS FUCKING GOOO\n");
+		exit(0);
+	}
+}
 
 int main(int argc, char *argv[])
 {
-	bool debug = false;
 
+	// set buffer size in case of segfault (for adb shell piping)
+	setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
+
+	// check if we are in debug mode based on args
+	bool debug = false;
 	if (argc == 2)
 	{
 		if (strcmp((const char *)argv[1], "--debug") == 0)
@@ -31,118 +49,56 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	// load the lib
 	library_handle = load_library(SAKE_LIBRARY_PATH);
 
+	// break in debug mode after we have loaded the library
 	if (debug)
 	{
 		debug_break();
 	}
 
+	// hook the random call if needed
+	// NOTE: it is still not deterministic for some reason. needs to be checked
 	hook_init();
-	char *p_keydb = keydb_init(library_handle, &TEST_KEY_DB, sizeof(TEST_KEY_DB));
 
-	server_init(library_handle, p_keydb);
+	// init the key dbs
+	char *server_keydb = keydb_init(library_handle, &SERVER_KEY_DB, sizeof(SERVER_KEY_DB));
+	char *client_keydb = keydb_init(library_handle, &CLIENT_KEY_DB, sizeof(CLIENT_KEY_DB));
+
+	// init server
+	server_init(library_handle, server_keydb);
 	printf("\n");
 
-	client_init(library_handle, p_keydb);
+	// init client
+	client_init(library_handle, client_keydb);
 	printf("\n");
 
+	// create msg buffers
 	SakeMsg *p_in_server_msg = malloc(sizeof(SakeMsg));
 	SakeMsg *p_out_server_msg = malloc(sizeof(SakeMsg));
 
 	SakeMsg *p_in_client_msg = malloc(sizeof(SakeMsg));
 	SakeMsg *p_out_client_msg = malloc(sizeof(SakeMsg));
 
-	// step 0: regenerate shit internally
+	// init both with null ptr, this will internally generate stuff
 	server_handshake(NULL, p_out_server_msg);
 	client_handshake(NULL, p_out_client_msg);
 
-	// step 1: exchange empty msgs
-	client_handshake(p_out_server_msg, p_out_client_msg);
-	server_handshake(p_out_client_msg, p_out_server_msg);
+	// run it
+	int server_last = 0;
+	int client_last = 0;
+	int max_count = 4;
 
-	for (int i = 0; i < 6; i++ ) {
-		client_handshake(p_out_server_msg, p_out_client_msg);
-		server_handshake(p_out_client_msg, p_out_server_msg);
+	for (int i = 0; i < max_count; i++ ) {
+		server_last = server_handshake(p_out_client_msg, p_out_server_msg);
+		check_success(client_last, server_last);
+		client_last = client_handshake(p_out_server_msg, p_out_client_msg);
+		check_success(client_last, server_last);
 	}
 
-	//SakeMsg* bak = malloc(sizeof(SakeMsg));
-	//memcpy(bak, p_out_server_msg, sizeof(SakeMsg));
-
+	printf("\n\nhandshake FAILED! :===(\n");
 	
-	//client_handshake(p_out_server_msg, p_out_client_msg);
-
-	//	printf("[i] p_keydb after server init: ");
-	// hex_dump(p_keydb, sizeof(TEST_KEY_DB));
-	//	printf("\n");
-
-	return 1;
-
-	/*
-	client_init(library_handle);
-
-	SakeMsg* p_out_msg = malloc(sizeof(SakeMsg));
-	SakeMsg* p_in_sake_msg = malloc(sizeof(SakeMsg));
-	int hsret;
-
-
-	// f6f61518 - f6f5a000(base)
-	// f6f5c518 - f6f55000
-
-	// ***** step 0 ***** -> call with null
-	//memset(p_out_msg, 0xAA, sizeof(SakeMsg));
-	printf("\n\n[i] step 0: ");
-	hex_dump(p_out_msg, sizeof(SakeMsg));
-	printf(" -> ");
-	hsret = SakeServerHandshake(0xAAAAAAAA, 0xBBBBBBBB, p_sake_server, 0xDDDDDDDD, NULL, 0xFFFFFFFF, p_out_msg, 0x11111111);
-	hex_dump(p_out_msg, sizeof(SakeMsg));
-	printf("\n");
-	printf("\thandshake retval = 0x%x\n", hsret);
-	print_sake_server_state(p_sake_server);
-
-
-	// ***** step 1 ***** -> call with all 00s
-	int size = 20;
-	memset(p_in_sake_msg, 0, size);
-	p_in_sake_msg->size = size;
-	printf("\n\n[i] step 1: ");
-	hex_dump(p_in_sake_msg, sizeof(SakeMsg));
-	printf(" -> ");
-	hsret = SakeServerHandshake(0xAAAAAAAA, 0xBBBBBBBB, p_sake_server, 0xDDDDDDDD, p_in_sake_msg, 0xFFFFFFFF, p_out_msg, 0x11111111);
-	hex_dump(p_out_msg, sizeof(SakeMsg));
-	printf("\n");
-	printf("\thandshake retval = 0x%x\n", hsret);
-	print_sake_server_state(p_sake_server);
-
-	// ***** step 2 *****
-	char* random_buff = get_random_data(20);
-	memcpy(p_in_sake_msg->data, random_buff, 20);
-	p_in_sake_msg->data[8] = 0x1; // fix device type? -> has to match the device type in the keydb
-	p_in_sake_msg->size = 20;
-	printf("\n\n[i] step 2: ");
-	hex_dump(p_in_sake_msg, sizeof(SakeMsg));
-	printf(" -> ");
-	hsret = SakeServerHandshake(0xAAAAAAAA, 0xBBBBBBBB, p_sake_server, 0xDDDDDDDD, p_in_sake_msg, 0xFFFFFFFF, p_out_msg, 0x11111111);
-	hex_dump(p_out_msg, sizeof(SakeMsg));
-	printf("\n");
-	printf("\thandshake retval = 0x%x\n", hsret);
-	print_sake_server_state(p_sake_server);
-
-	// ***** step 3 *****
-	char* random_buff2 = get_random_data(20);
-	memcpy(p_in_sake_msg->data, random_buff2, 20);
-	p_in_sake_msg->size = 20;
-	printf("\n\n[i] step 3: ");
-	hex_dump(p_in_sake_msg, sizeof(SakeMsg));
-	printf(" -> ");
-	hsret = SakeServerHandshake(0xAAAAAAAA, 0xBBBBBBBB, p_sake_server, 0xDDDDDDDD, p_in_sake_msg, 0xFFFFFFFF, p_out_msg, 0x11111111);
-	hex_dump(p_out_msg, sizeof(SakeMsg));
-	printf("\n");
-	printf("[i] handshake status = 0x%x\n", hsret);
-	print_sake_server_state(p_sake_server);
-
-	*/
-
 	dlclose(library_handle);
 	return 0;
 }

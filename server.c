@@ -10,38 +10,33 @@ static void *server_handle;
 static int handshake_step = 0;
 
 int server_handshake(SakeMsg* msg_in, SakeMsg* msg_out) {
-	printf("\n\n[i] server step %d\n", handshake_step);
+	printf("\n\nSERVER STEP %d\n", handshake_step);
 
-	printf("\tin: ");
-    hex_dump(msg_in, sizeof(SakeMsg));
-
-    printf("\n\tout: ");
-    hex_dump(msg_out, sizeof(SakeMsg));
+    print_sake_msg("\tmsg in = ", msg_in);
 
     int retval = SakeServerHandshake(0xAAAAAAAA, 0xBBBBBBBB, server_handle, 0xDDDDDDDD, msg_in, 0xFFFFFFFF, msg_out, 0x11111111);
-    printf("\n\tretval = 0x%x\n", retval);
+    char* retval_str = sake_handshake_status_str(retval);
+    printf("\tretval = %s\n", retval_str);
+    
+    print_sake_msg("\tmsg out = ", msg_out);
 
-	printf("\tin: ");
-    hex_dump(msg_in, sizeof(SakeMsg));
-
-    printf("\n\tout: ");
-    hex_dump(msg_out, sizeof(SakeMsg));
-
-    printf("\n");
 	server_print_status();
     handshake_step++;
-
+    return retval;
 }
 
 void server_print_status()
 {
-    int sake_status = *((uint32_t *)server_handle);
+    int server_state = *((uint32_t *)server_handle);
     int last_error = *((uint32_t *)(server_handle + 0xa4));
-    printf("\tstate = 0x%x\n\tlast_err = 0x%x\n\tclient_challenge = ", sake_status, last_error);
-    hex_dump((server_handle + 0x4), 8);
-    printf("\n\tserver_challenge = ");
-    hex_dump(server_handle + 0xc, 8);
-    printf("\n");
+    const char *last_err_str = sake_last_error_str(last_error);
+
+    
+    printf("\tserver_state = %d\n", server_state);
+    printf("\tlast_err = %s\n" , last_err_str);
+
+    CHECK_EQ_8(server_state);
+
     return;
 }
 
@@ -55,7 +50,7 @@ void server_init(void *hLib, void* key_db)
 	printf("[i] New sake server is at %p\n", server_handle);
 
 	SakeServer_Init(0xAAAAAAAA, 0xBBBBBBBB, server_handle, 0xDDDDDDDD, key_db, 0xFFFFFFFF);
-	printf("[+] Server initialized successfully.\n");
+	printf("[+] Server initialized successfully with keydb\n");
 	server_print_status();
 
     return;

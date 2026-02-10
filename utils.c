@@ -21,6 +21,17 @@ void hex_dump(const void *data, int size) {
 	//printf("\n");
 }
 
+void print_sake_msg(const char* prefix, SakeMsg* msg) {
+    printf("%s",prefix);
+    if (msg == NULL) {
+        printf("<NULL>\n");
+        return;
+    }
+
+    hex_dump(msg, msg->size);
+    printf("\n");
+}
+
 void* get_so_base_addr(const char *so_filename) {
     char maps_filename[256];
     FILE *maps_file;
@@ -118,3 +129,49 @@ void* get_random_data(int len) {
     return buffer;
 }
 
+
+
+const char* sake_last_error_str(int code)
+{
+    switch(code) {
+      //  case 0: return "E_SAKE_HANDSHAKE_ERROR_INVALID";
+        case 1-1: return "E_SAKE_HANDSHAKE_ERROR_FIRST";
+        case 2-1: return "E_SAKE_HANDSHAKE_NO_ERROR";
+        case 3-1: return "E_SAKE_HANDSHAKE_INTERFACE_MISUSED";
+        case 4-1: return "E_SAKE_HANDSHAKE_SYNCHRONIZATION_INVALID";
+        case 5-1: return "E_SAKE_HANDSHAKE_CHALLENGE_NOT_GENERATED";
+        case 6-1: return "E_SAKE_HANDSHAKE_CHALLENGE_INVALID";
+        case 7-1: return "E_SAKE_HANDSHAKE_SYNCHRONIZATION_RESPONSE_NOT_GENERATED";
+        case 8-1: return "E_SAKE_HANDSHAKE_SYNCHRONIZATION_RESPONSE_INVALID";
+        case 9-1: return "E_SAKE_HANDSHAKE_DEVICE_TYPE_NOT_SUPPORTED";
+        case 10-1: return "E_SAKE_HANDSHAKE_CHALLENGE_RESPONSE_INVALID";
+        case 11-1: return "E_SAKE_HANDSHAKE_CHALLENGE_RESPONSE_NOT_GENERATED";
+        case 12-1: return "E_SAKE_HANDSHAKE_CHALLENGE_RESPONSE_NOT_RANDOMIZED";
+        case 13-1: return "E_SAKE_HANDSHAKE_SESSION_KEY_NOT_DERIVED";
+        case 14-1: return "E_SAKE_HANDSHAKE_SESSION_KEY_NOT_RANDOMIZED";
+        case 15-1: return "E_SAKE_HANDSHAKE_SESSION_KEY_INVALID";
+        case 16-1: return "E_SAKE_HANDSHAKE_PERMIT_NOT_SECURED";
+        case 17-1: return "E_SAKE_HANDSHAKE_PERMIT_NOT_PADDED";
+        case 18-1: return "E_SAKE_HANDSHAKE_PERMIT_PADDING_INVALID";
+        case 19-1: return "E_SAKE_HANDSHAKE_PERMIT_INVALID";
+        case 20-1: return "E_SAKE_HANDSHAKE_PERMIT_ISSUED_TO_DIFFERENT_DEVICE";
+        case 21-1: return "E_SAKE_HANDSHAKE_PROTOCOL_VERSION_MISMATCH";
+        case 22-1: return "E_SAKE_HANDSHAKE_PASSKEY_NOT_COMPLETED";
+        case 23-1: return "E_SAKE_HANDSHAKE_PASSKEY_INVALID";
+        case 25-1: return "E_SAKE_HANDSHAKE_ERROR_LAST";
+        case 24-1: return "E_SAKE_HANDSHAKE_TRANSCRIPT_NOT_UPDATED";
+        default: return "E_SAKE_HANDSHAKE_UNKNOWN";
+    }
+}
+
+const char* sake_handshake_status_str(int code) {
+    // SAKE_HANDSHAKE_STATUS_E.java
+
+    switch (code) {
+        case 0: return "E_SAKE_HANDSHAKE_SUCCESSFUL";
+        case 1: return "E_SAKE_HANDSHAKE_FAILED";
+        case 2: return "E_SAKE_HANDSHAKE_IN_PROGRESS";
+        default: return "E_SAKE_HANDSHAKE_UNKNOWN";
+    }
+
+}

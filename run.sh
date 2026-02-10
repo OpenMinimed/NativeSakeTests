@@ -1,1 +1,1 @@
-make push && adb shell /data/local/tmp/sakeloader/sakeloader
+make clean && make && make push && adb shell /data/local/tmp/sakeloader/sakeloader

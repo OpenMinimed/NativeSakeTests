@@ -11,7 +11,7 @@ typedef uint32_t* (*SakeNewClient_t)(JNIEnv *env,jclass thiz);
 typedef uint32_t (*SakeClientHandshake_t)(JNIEnv *env,jclass thiz, jlong p_sake_client, jobject unused1, jlong p_in_msg, jobject unused2, jlong p_out_msg, jobject unused3); 
 
 int client_handshake(SakeMsg* msg_in, SakeMsg* msg_out);
-void client_print_status();
+void client_check_status();
 void client_init(void *hLib, void* key_db);
 
 #endif /* CLIENT */
