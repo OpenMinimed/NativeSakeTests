@@ -9,7 +9,7 @@ static SakeClientHandshake_t SakeClientHandshake = NULL;
 static void *client_handle;
 static int handshake_step = 0;
 
-int client_handshake(SakeMsg* msg_in, SakeMsg* msg_out) {
+int client_handshake(SakeUserMsg* msg_in, SakeUserMsg* msg_out) {
 	printf("\n\nCLIENT STEP %d\n", handshake_step);
 
 	print_sake_msg("\tmsg in = ", msg_in);

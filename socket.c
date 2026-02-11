@@ -1,4 +1,3 @@
-// server.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,8 +5,9 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include "common.h"
+
 #define PORT 6969
-#define MSG_SIZE 20
 
 static int client_fd, server_fd;
 
@@ -15,8 +15,8 @@ void socket_recv(void *buf) {
     size_t total = 0;
     ssize_t n;
 
-    while (total < MSG_SIZE) {
-        n = recv(client_fd, (char*)buf + total, MSG_SIZE - total, 0);
+    while (total < SAKE_MSG_SIZE) {
+        n = recv(client_fd, (char*)buf + total, SAKE_MSG_SIZE - total, 0);
         if (n <= 0) {
             printf("socket_recv() failed!\n");
             exit(1);
@@ -24,6 +24,9 @@ void socket_recv(void *buf) {
         
         total += n;
     }
+    printf("received from socket @0x%x = ", buf);
+    hex_dump(buf, SAKE_MSG_SIZE);
+    printf("\n");
     return;
 }
 
@@ -31,14 +34,17 @@ void socket_send(void *buf) {
     size_t total = 0;
     ssize_t n;
 
-    while (total < MSG_SIZE) {
-        n = send(client_fd, (char*)buf + total, MSG_SIZE - total, 0);
+    while (total < SAKE_MSG_SIZE) {
+        n = send(client_fd, (char*)buf + total, SAKE_MSG_SIZE - total, 0);
         if (n <= 0) {
             printf("socket_send() failed!\n");
             exit(1);
         }
         total += n;
     }
+    printf("sent on socket: ");
+    hex_dump(buf, SAKE_MSG_SIZE);
+    printf("\n");
     return;
 }
 
@@ -61,7 +67,7 @@ int socket_create() {
     bind(server_fd, (struct sockaddr*)&addr, sizeof(addr));
     listen(server_fd, 1);
 
-    printf("waiting for socket connection...\n");
+    printf("waiting for socket connection on port %d ...\n", PORT);
     client_fd = accept(server_fd, NULL, NULL);
     return client_fd;
 }

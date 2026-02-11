@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "server.h"
 #include "keydb.h"
+#include "socket.h"
 
 void *library_handle = NULL;
 
@@ -25,6 +26,95 @@ void check_success(int a, int b) {
 		printf("\n\nHANDSHAKE SUCCESS :---)\n");
 		exit(0);
 	}
+}
+
+void server_client_test() {
+
+	// init the key dbs
+	char *server_keydb = keydb_init(library_handle, &SERVER_KEY_DB, sizeof(SERVER_KEY_DB));
+	char *client_keydb = keydb_init(library_handle, &CLIENT_KEY_DB, sizeof(CLIENT_KEY_DB));
+
+	// init server
+	server_init(library_handle, server_keydb);
+	printf("\n");
+
+	// init client
+	client_init(library_handle, client_keydb);
+	printf("\n");
+
+	// create msg buffers
+	SakeUserMsg *p_in_server_msg = malloc(sizeof(SakeUserMsg));
+	SakeUserMsg *p_out_server_msg = malloc(sizeof(SakeUserMsg));
+
+	SakeUserMsg *p_in_client_msg = malloc(sizeof(SakeUserMsg));
+	SakeUserMsg *p_out_client_msg = malloc(sizeof(SakeUserMsg));
+
+	// init both with null ptr, this will internally generate stuff
+	server_handshake(NULL, p_out_server_msg);
+	client_handshake(NULL, p_out_client_msg);
+
+	// run it
+	int server_last = 0;
+	int client_last = 0;
+	int max_count = 4;
+
+	for (int i = 0; i < max_count; i++ ) {
+		server_last = server_handshake(p_out_client_msg, p_out_server_msg);
+		check_success(client_last, server_last);
+		client_last = client_handshake(p_out_server_msg, p_out_client_msg);
+		check_success(client_last, server_last);
+	}
+
+	printf("\n\nHANDSHAKE FAILED! :===(\n");
+
+}
+
+void socket_client_test() {
+
+	
+	char *client_keydb = keydb_init(library_handle, &CLIENT_KEY_DB, sizeof(CLIENT_KEY_DB));
+	
+	client_init(library_handle, client_keydb);
+	
+	
+	char* recv_buf = malloc(SAKE_MSG_SIZE);
+	char* send_buf = malloc(SAKE_MSG_SIZE);
+	
+	SakeUserMsg *client_in_buf = malloc(sizeof(SakeUserMsg));
+	SakeUserMsg *client_out_buf = malloc(sizeof(SakeUserMsg));
+	
+	// init it
+	client_handshake(NULL, client_out_buf);
+	//memset(client_out_buf, sizeof(SakeUserMsg));
+	
+	int socket_fd = socket_create();
+
+	int tries = 4;
+	for (int i = 0; i < tries; i++) {
+
+		
+		// get and copy data
+		socket_recv(recv_buf);
+		memcpy(client_in_buf, recv_buf, SAKE_MSG_SIZE);
+
+		// set struct size
+		client_in_buf->size = SAKE_MSG_SIZE;
+
+		// call the lib
+		int retval = client_handshake(client_in_buf, client_out_buf);
+
+		// send back the resp
+		memcpy(send_buf, client_out_buf, SAKE_MSG_SIZE);
+		socket_send(send_buf);
+
+		if (retval == 0) {
+			printf("handshake OK!\n");
+			break;
+		}
+	}
+	
+	socket_close();
+	return;
 }
 
 int main(int argc, char *argv[])
@@ -62,42 +152,11 @@ int main(int argc, char *argv[])
 	// NOTE: it is still not deterministic for some reason. needs to be checked
 	hook_init();
 
-	// init the key dbs
-	char *server_keydb = keydb_init(library_handle, &SERVER_KEY_DB, sizeof(SERVER_KEY_DB));
-	char *client_keydb = keydb_init(library_handle, &CLIENT_KEY_DB, sizeof(CLIENT_KEY_DB));
 
-	// init server
-	server_init(library_handle, server_keydb);
-	printf("\n");
 
-	// init client
-	client_init(library_handle, client_keydb);
-	printf("\n");
+	//server_client_test();
+	socket_client_test();
 
-	// create msg buffers
-	SakeMsg *p_in_server_msg = malloc(sizeof(SakeMsg));
-	SakeMsg *p_out_server_msg = malloc(sizeof(SakeMsg));
-
-	SakeMsg *p_in_client_msg = malloc(sizeof(SakeMsg));
-	SakeMsg *p_out_client_msg = malloc(sizeof(SakeMsg));
-
-	// init both with null ptr, this will internally generate stuff
-	server_handshake(NULL, p_out_server_msg);
-	client_handshake(NULL, p_out_client_msg);
-
-	// run it
-	int server_last = 0;
-	int client_last = 0;
-	int max_count = 4;
-
-	for (int i = 0; i < max_count; i++ ) {
-		server_last = server_handshake(p_out_client_msg, p_out_server_msg);
-		check_success(client_last, server_last);
-		client_last = client_handshake(p_out_server_msg, p_out_client_msg);
-		check_success(client_last, server_last);
-	}
-
-	printf("\n\nHANDSHAKE FAILED! :===(\n");
 	
 	dlclose(library_handle);
 	return 0;

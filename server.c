@@ -9,7 +9,7 @@ static SakeServerHandshake_t SakeServerHandshake = NULL;
 static void *server_handle;
 static int handshake_step = 0;
 
-int server_handshake(SakeMsg* msg_in, SakeMsg* msg_out) {
+int server_handshake(SakeUserMsg* msg_in, SakeUserMsg* msg_out) {
 	printf("\n\nSERVER STEP %d\n", handshake_step);
 
     print_sake_msg("\tmsg in = ", msg_in);

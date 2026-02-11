@@ -12,6 +12,6 @@ typedef uint32_t (*SakeServerHandshake_t)(JNIEnv *env,jclass thiz, jlong p_sake_
 
 void server_print_status();
 void server_init(void *hLib, void* key_db);
-int server_handshake(SakeMsg* msg_in, SakeMsg* msg_out);
+int server_handshake(SakeUserMsg* msg_in, SakeUserMsg* msg_out);
 
 #endif /* SERVER */

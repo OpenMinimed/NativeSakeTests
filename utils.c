@@ -21,7 +21,7 @@ void hex_dump(const void *data, int size) {
 	//printf("\n");
 }
 
-void print_sake_msg(const char* prefix, SakeMsg* msg) {
+void print_sake_msg(const char* prefix, SakeUserMsg* msg) {
     printf("%s",prefix);
     if (msg == NULL) {
         printf("<NULL>\n");
