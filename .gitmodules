@@ -1,0 +1,3 @@
+[submodule "InlineHook"]
+	path = InlineHook
+	url = https://github.com/yongyecc/InlineHook
