@@ -19,7 +19,7 @@ INCLUDE_DIR = InlineHook/jni/hook/
 CFLAGS = -g -Wall -O2 -fPIC -I$(SYSROOT)/usr/include -I$(NDK_PATH)/sysroot/usr/include/jni -I$(NDK_PATH)/sysroot/usr/include/jni.h -I$(INCLUDE_DIR)
 LDFLAGS = -L$(SYSROOT)/usr/lib -L$(NDK_PATH)/platforms/android-21/arch-arm64/usr/lib -L$(INCLUDE_DIR) -ldl
 
-LIBS = -ldl -L$(INCLUDE_DIR) -lInlineHook # Link with libhooker.a and libTKHooklib
+LIBS = -ldl -L$(INCLUDE_DIR) -lInlineHook
 
 TARGET = sakeloader
 SRC = *.c

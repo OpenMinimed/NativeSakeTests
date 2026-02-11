@@ -22,7 +22,7 @@ char CLIENT_KEY_DB[] = {
 
 void check_success(int a, int b) {
 	if (a == 0 && b == 0) {
-		printf("\n\nHANDSHAKE SUCCESS LETS FUCKING GOOO\n");
+		printf("\n\nHANDSHAKE SUCCESS :---)\n");
 		exit(0);
 	}
 }
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 		check_success(client_last, server_last);
 	}
 
-	printf("\n\nhandshake FAILED! :===(\n");
+	printf("\n\nHANDSHAKE FAILED! :===(\n");
 	
 	dlclose(library_handle);
 	return 0;

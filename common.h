@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #define SAKE_LIBRARY_PATH "/data/local/tmp/sakeloader/libandroid-sake-lib.so"
-#define HOOK_RANDOM true
+#define HOOK_RANDOM false
 
 // state of 8 means error ?
 #define CHECK_EQ_8(x) do {                          \
